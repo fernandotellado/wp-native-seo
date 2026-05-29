@@ -1,0 +1,91 @@
+# htaccess additions — WCEU 2026 workshop
+#
+# Apache + mod_rewrite required. Always back up your existing .htaccess
+# before adding rules. Test on staging first.
+#
+# Drop these rules INSIDE the existing <IfModule mod_rewrite.c> block,
+# AFTER "RewriteEngine On" and BEFORE the WordPress block (the part that
+# says "BEGIN WordPress").
+#
+# Workshop: WCEU 2026 — Do you really need an SEO/GEO plugin for WordPress?
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # ---------------------------------------------------------------------
+    # 1) Block AI training and answer-engine bots by User-Agent.
+    #    Faster than robots.txt because Apache stops the request before
+    #    WordPress is even loaded.
+    # ---------------------------------------------------------------------
+    RewriteCond %{HTTP_USER_AGENT} (GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|anthropic-ai|Google-Extended|PerplexityBot|CCBot|Bytespider|Amazonbot|cohere-ai|FacebookBot|Applebot-Extended) [NC]
+    RewriteRule .* - [F,L]
+
+    # ---------------------------------------------------------------------
+    # 2) Block known content scrapers by User-Agent.
+    # ---------------------------------------------------------------------
+    RewriteCond %{HTTP_USER_AGENT} (AhrefsBot|SemrushBot|MJ12bot|DotBot|BLEXBot|PetalBot|SeznamBot|MegaIndex|DataForSeoBot) [NC]
+    RewriteRule .* - [F,L]
+
+    # ---------------------------------------------------------------------
+    # 3) Force HTTPS (most hosts do this already, useful as a backup).
+    # ---------------------------------------------------------------------
+    # RewriteCond %{HTTPS} !=on
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+    # ---------------------------------------------------------------------
+    # 4) Permanent redirects for old URLs.
+    #    Faster than running them in PHP via template_redirect.
+    # ---------------------------------------------------------------------
+    Redirect 301 /old-page/ /new-page/
+    Redirect 301 /services/seo/ /seo-services/
+    RedirectMatch 301 ^/blog/2023/(.*)$ /archive/$1
+
+    # ---------------------------------------------------------------------
+    # 5) Force non-www to www (or the other way around — pick one).
+    # ---------------------------------------------------------------------
+    # RewriteCond %{HTTP_HOST} ^example\.com [NC]
+    # RewriteRule ^(.*)$ https://www.example.com/$1 [R=301,L]
+
+</IfModule>
+
+# -------------------------------------------------------------------------
+# 6) Block direct access to xmlrpc.php (most sites don't use it).
+#    Apply outside the mod_rewrite block.
+# -------------------------------------------------------------------------
+<Files xmlrpc.php>
+    Require all denied
+</Files>
+
+# -------------------------------------------------------------------------
+# 7) Block direct access to sensitive files just in case.
+# -------------------------------------------------------------------------
+<FilesMatch "^(wp-config\.php|\.htaccess|\.env|\.gitignore)$">
+    Require all denied
+</FilesMatch>
+
+# -------------------------------------------------------------------------
+# 8) Browser caching (helps Core Web Vitals).
+#    Requires mod_expires.
+# -------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/x-font-woff2 "access plus 1 year"
+</IfModule>
+
+# -------------------------------------------------------------------------
+# 9) GZIP compression (helps Core Web Vitals).
+#    Requires mod_deflate.
+# -------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml application/rss+xml image/svg+xml
+</IfModule>

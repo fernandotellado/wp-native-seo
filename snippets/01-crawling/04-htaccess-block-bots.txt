@@ -1,0 +1,31 @@
+# Block bots at the server level via htaccess (Apache + mod_rewrite)
+#
+# Use these rules when a bot ignores robots.txt. Apache stops the request
+# before WordPress is loaded, which is also more efficient.
+#
+# Drop these inside the <IfModule mod_rewrite.c> block in .htaccess,
+# right after RewriteEngine On. Do NOT touch the WordPress block below it.
+#
+# Workshop: WCEU 2026 — Do you really need an SEO/GEO plugin for WordPress?
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block AI training and answer-engine bots by User-Agent.
+    RewriteCond %{HTTP_USER_AGENT} (GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|anthropic-ai|Google-Extended|PerplexityBot|CCBot|Bytespider|Amazonbot|cohere-ai|FacebookBot|Applebot-Extended) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block known content scrapers by User-Agent.
+    RewriteCond %{HTTP_USER_AGENT} (AhrefsBot|SemrushBot|MJ12bot|DotBot|BLEXBot|PetalBot|SeznamBot|MegaIndex|DataForSeoBot) [NC]
+    RewriteRule .* - [F,L]
+
+    # Block direct access to xmlrpc.php (most sites don't need it).
+    <Files xmlrpc.php>
+        Require all denied
+    </Files>
+
+    # Block direct access to wp-config.php and .htaccess just in case.
+    <FilesMatch "^(wp-config\.php|\.htaccess)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
