@@ -15,7 +15,6 @@ The workshop walks through six SEO jobs. Each folder under `snippets/` matches o
 .
 ├── README.md                   ← you are here
 ├── demo-seo-tweaks.php         ← drop-in mu-plugin with every snippet
-├── wp-config-additions.php     ← three SEO-relevant constants
 ├── htaccess-additions.txt      ← server-level rules
 └── snippets/
     ├── 01-crawling/
@@ -56,7 +55,6 @@ What enters the index and how it looks.
 - Auto meta description from existing WordPress fields (tagline, excerpt, term description, biographical info).
 - noindex thin and low-value pages (search results, paginated archives, tags with few posts).
 - 301-redirect author and date archives.
-- `wp-config.php` constants worth knowing: `WP_POST_REVISIONS`, `EMPTY_TRASH_DAYS`, `DISALLOW_FILE_EDIT`.
 
 ### Section 3 — Structured data
 
