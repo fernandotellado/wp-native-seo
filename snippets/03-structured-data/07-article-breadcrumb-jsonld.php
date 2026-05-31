@@ -64,6 +64,24 @@ add_action(
 				'description' => $author->description,
 				'url'         => get_author_posts_url( $author->ID ),
 			);
+
+			// Person.sameAs — reads the URL fields from the user profile.
+			// The Website field (user_url) is native. The rest only exist if
+			// section 7b is also uncommented (user_contactmethods filter).
+			$same_as_keys = array( 'wporg', 'github', 'x', 'youtube', 'linkedin', 'mastodon' );
+			$same_as      = array();
+			if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {
+				$same_as[] = esc_url_raw( $author->user_url );
+			}
+			foreach ( $same_as_keys as $key ) {
+				$url = get_user_meta( $author->ID, $key, true );
+				if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+					$same_as[] = esc_url_raw( $url );
+				}
+			}
+			if ( ! empty( $same_as ) ) {
+				$article['author']['sameAs'] = array_values( array_unique( $same_as ) );
+			}
 		}
 
 		if ( $image_url ) {

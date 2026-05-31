@@ -56,7 +56,7 @@ add_action(
 		);
 
 		// Build sameAs from native Website URL + Section 7b extras.
-		$same_as_keys = array( 'mastodon', 'x', 'linkedin', 'github', 'youtube' );
+		$same_as_keys = array( 'wporg', 'github', 'x', 'youtube', 'linkedin', 'mastodon' );
 		$same_as      = array();
 
 		if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {

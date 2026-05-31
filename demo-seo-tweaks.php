@@ -219,11 +219,12 @@ add_action(
 add_filter(
 	'user_contactmethods',
 	function ( $methods ) {
-		$methods['mastodon'] = 'Mastodon URL';
-		$methods['x']        = 'X / Twitter URL';
-		$methods['linkedin'] = 'LinkedIn URL';
+		$methods['wporg']    = 'WordPress.org profile URL';
 		$methods['github']   = 'GitHub URL';
+		$methods['x']        = 'X / Twitter URL';
 		$methods['youtube']  = 'YouTube URL';
+		$methods['linkedin'] = 'LinkedIn URL';
+		$methods['mastodon'] = 'Mastodon URL';
 		return $methods;
 	}
 );
@@ -268,7 +269,7 @@ add_action(
 			// Person.sameAs — reads the URL fields from the user profile.
 			// The Website field (user_url) is native. The rest only exist if
 			// section 7b is also uncommented (user_contactmethods filter).
-			$same_as_keys = array( 'mastodon', 'x', 'linkedin', 'github', 'youtube' );
+			$same_as_keys = array( 'wporg', 'github', 'x', 'youtube', 'linkedin', 'mastodon' );
 			$same_as      = array();
 			if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {
 				$same_as[] = esc_url_raw( $author->user_url );
@@ -372,7 +373,7 @@ add_action(
 			'image'       => get_avatar_url( $author->ID, array( 'size' => 256 ) ),
 		);
 
-		$same_as_keys = array( 'mastodon', 'x', 'linkedin', 'github', 'youtube' );
+		$same_as_keys = array( 'wporg', 'github', 'x', 'youtube', 'linkedin', 'mastodon' );
 		$same_as      = array();
 
 		if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {
@@ -537,9 +538,9 @@ add_action(
 		}
 
 		$redirects = array(
-			'/old-page/'          => '/new-page/',
-			'/services/seo/'      => '/seo-services/',
-			'/blog/2024/welcome/' => '/welcome/',
+			'/old-post/'          => '/new-post/', //example of a single post redirect
+			'/services/seo/'      => '/seo-services/', //example of a category base change
+			'/blog/2024/welcome/' => '/welcome/', //example of a permalink structure change
 		);
 
 		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
@@ -559,7 +560,7 @@ add_action(
 */
 
 /* =====================================================================
- * SECTION 11 — Redirects: log 404s to error_log
+ * SECTION 11 — Redirects: log 404s to wp-content/404-log.txt
  * ===================================================================== */
 
 /*
@@ -581,7 +582,15 @@ add_action(
 			}
 		}
 
-		error_log( sprintf( '[404] URI: %s | Referrer: %s | UA: %s', $request_uri, $referrer, $user_agent ) );
+		$line = sprintf(
+			"[%s] URI: %s | Referrer: %s | UA: %s\n",
+			gmdate( 'Y-m-d H:i:s' ),
+			$request_uri,
+			$referrer,
+			$user_agent
+		);
+
+		error_log( $line, 3, WP_CONTENT_DIR . '/404-log.txt' );
 	}
 );
 */

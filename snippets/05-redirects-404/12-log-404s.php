@@ -1,13 +1,14 @@
 <?php
 /**
- * Section 11 — Log 404 errors to the PHP error log
+ * Section 11 — Log 404 errors to wp-content/404-log.txt
  *
- * Catches every 404 and writes the requested URI, the referrer and the user
- * agent to the PHP error log. Use it to build a list of broken inbound
- * links worth redirecting.
+ * Catches every 404 and appends a line with the timestamp, requested URI,
+ * referrer and user agent to a dedicated text file at wp-content/404-log.txt.
+ * Use it to build a list of broken inbound links worth redirecting, without
+ * mixing them with the PHP error log.
  *
- * Skips bot referrers and obvious vulnerability probes (anything with
- * wp-config, .env, /vendor/, etc.) to avoid filling the log with garbage.
+ * Skips obvious vulnerability probes (anything with wp-config, .env,
+ * /vendor/, etc.) to avoid filling the file with garbage.
  *
  * Workshop: WCEU 2026 — Do you really need an SEO/GEO plugin for WordPress?
  *
@@ -35,13 +36,15 @@ add_action(
 			}
 		}
 
-		error_log(
-			sprintf(
-				'[404] URI: %s | Referrer: %s | UA: %s',
-				$request_uri,
-				$referrer,
-				$user_agent
-			)
+		$line = sprintf(
+			"[%s] URI: %s | Referrer: %s | UA: %s\n",
+			gmdate( 'Y-m-d H:i:s' ),
+			$request_uri,
+			$referrer,
+			$user_agent
 		);
+
+		// Write to wp-content/404-log.txt with the PHP error_log "append to file" mode.
+		error_log( $line, 3, WP_CONTENT_DIR . '/404-log.txt' );
 	}
 );

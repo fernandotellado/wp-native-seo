@@ -91,7 +91,7 @@ When URLs change. When pages disappear.
 
 - The unsung hero: `wp_old_slug_redirect()`, native and automatic since the early days.
 - Manual 301s via `template_redirect`.
-- 404 logging to the PHP error log to build a real list of broken inbound links.
+- 404 logging to a dedicated `wp-content/404-log.txt` file to build a real list of broken inbound links (no PHP error log noise, no `WP_DEBUG_LOG` required).
 - htaccess redirect blocks for large maps.
 
 ### Section 6 — The GEO layer
