@@ -199,10 +199,36 @@ add_action(
 */
 
 /* =====================================================================
- * SECTION 7 — Structured data: Article + BreadcrumbList JSON-LD
+ * SECTION 7 — Structured data (three things in one block)
+ *
+ *   7.1  user_contactmethods filter — adds Mastodon/X/LinkedIn/GitHub/
+ *        YouTube URL fields to the user profile.
+ *   7.2  Article + BreadcrumbList JSON-LD on single posts. Includes
+ *        Person.sameAs built from the URL fields above plus the native
+ *        Website field.
+ *   7.3  ProfilePage + Person JSON-LD on author archives, with the same
+ *        sameAs logic.
+ *
+ * One uncomment, three visible effects (profile screen, single post,
+ * author archive). For studying each piece in isolation, see the
+ * standalone files 07-, 07b- and 07c- under snippets/03-structured-data/.
  * ===================================================================== */
 
 /*
+// 7.1 — Profile fields for Person.sameAs.
+add_filter(
+	'user_contactmethods',
+	function ( $methods ) {
+		$methods['mastodon'] = 'Mastodon URL';
+		$methods['x']        = 'X / Twitter URL';
+		$methods['linkedin'] = 'LinkedIn URL';
+		$methods['github']   = 'GitHub URL';
+		$methods['youtube']  = 'YouTube URL';
+		return $methods;
+	}
+);
+
+// 7.2 — JSON-LD on single posts: Article + BreadcrumbList.
 add_action(
 	'wp_head',
 	function () {
@@ -238,6 +264,24 @@ add_action(
 				'description' => $author->description,
 				'url'         => get_author_posts_url( $author->ID ),
 			);
+
+			// Person.sameAs — reads the URL fields from the user profile.
+			// The Website field (user_url) is native. The rest only exist if
+			// section 7b is also uncommented (user_contactmethods filter).
+			$same_as_keys = array( 'mastodon', 'x', 'linkedin', 'github', 'youtube' );
+			$same_as      = array();
+			if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {
+				$same_as[] = esc_url_raw( $author->user_url );
+			}
+			foreach ( $same_as_keys as $key ) {
+				$url = get_user_meta( $author->ID, $key, true );
+				if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+					$same_as[] = esc_url_raw( $url );
+				}
+			}
+			if ( ! empty( $same_as ) ) {
+				$article['author']['sameAs'] = array_values( array_unique( $same_as ) );
+			}
 		}
 		if ( $image_url ) {
 			$article['image'] = $image_url;
@@ -299,6 +343,59 @@ add_action(
 
 		echo '<script type="application/ld+json">' . "\n";
 		echo wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT );
+		echo "\n" . '</script>' . "\n";
+	},
+	5
+);
+
+// 7.3 — JSON-LD on author archives: ProfilePage + Person.
+add_action(
+	'wp_head',
+	function () {
+		if ( defined( 'WPSEO_VERSION' ) || defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) ) {
+			return;
+		}
+		if ( ! is_author() ) {
+			return;
+		}
+
+		$author = get_queried_object();
+		if ( ! $author instanceof WP_User ) {
+			return;
+		}
+
+		$person = array(
+			'@type'       => 'Person',
+			'name'        => $author->display_name,
+			'description' => $author->description,
+			'url'         => get_author_posts_url( $author->ID ),
+			'image'       => get_avatar_url( $author->ID, array( 'size' => 256 ) ),
+		);
+
+		$same_as_keys = array( 'mastodon', 'x', 'linkedin', 'github', 'youtube' );
+		$same_as      = array();
+
+		if ( $author->user_url && filter_var( $author->user_url, FILTER_VALIDATE_URL ) ) {
+			$same_as[] = esc_url_raw( $author->user_url );
+		}
+		foreach ( $same_as_keys as $key ) {
+			$url = get_user_meta( $author->ID, $key, true );
+			if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+				$same_as[] = esc_url_raw( $url );
+			}
+		}
+		if ( ! empty( $same_as ) ) {
+			$person['sameAs'] = array_values( array_unique( $same_as ) );
+		}
+
+		$profile_page = array(
+			'@context'   => 'https://schema.org',
+			'@type'      => 'ProfilePage',
+			'mainEntity' => $person,
+		);
+
+		echo "\n" . '<script type="application/ld+json">' . "\n";
+		echo wp_json_encode( $profile_page, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT );
 		echo "\n" . '</script>' . "\n";
 	},
 	5

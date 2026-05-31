@@ -36,6 +36,16 @@ That's it. The mu-plugin folder doesn't appear in the plugins screen and the fil
 
 > Important: most snippets check for Yoast SEO, Rank Math and AIOSEO and stay silent when one of those plugins is active. Use the snippets OR an SEO plugin, not both. Mixing both means duplicate meta tags.
 
+### Section 7 — three things in one block
+
+In `demo-seo-tweaks.php`, Section 7 does three things in a single uncomment:
+
+1. Registers Mastodon, X, LinkedIn, GitHub and YouTube URL fields on the user profile via `user_contactmethods` (subsection 7.1 in the code).
+2. Prints `Article` + `BreadcrumbList` JSON-LD on single posts, with `Person.sameAs` built from those fields plus the native Website URL (subsection 7.2).
+3. Prints `ProfilePage` + `Person` JSON-LD on author archives, with the same `sameAs` logic (subsection 7.3).
+
+One uncomment, three visible effects on three different pages: the profile screen gets new URL fields, single posts get schema, the author archive gets schema. The standalone files `07-`, `07b-` and `07c-` under `snippets/03-structured-data/` split the three pieces if you want to study or copy them in isolation, but the mu-plugin keeps them together because they share data and feed each other.
+
 ## What each section covers
 
 ### Section 1 — Crawling
@@ -60,8 +70,12 @@ What enters the index and how it looks.
 
 Telling machines what your content means.
 
-- Minimal `Article` + `BreadcrumbList` JSON-LD built from existing WordPress fields.
-- E-E-A-T inputs: user biographical info, social URLs, category descriptions.
+- Minimal `Article` + `BreadcrumbList` JSON-LD on single posts (file `07-article-breadcrumb-jsonld.php`).
+- E-E-A-T inputs: user biographical info, Gravatar avatar, the native Website URL field (`user_url`) and category descriptions.
+- Extra social URL fields for `Person.sameAs` (Mastodon, X, LinkedIn, GitHub, YouTube) added with the native `user_contactmethods` filter (file `07b-user-contactmethods.php`).
+- `ProfilePage` + `Person` JSON-LD on author archives, so `/author/{slug}/` becomes machine-readable about who wrote the content (file `07c-author-profile-jsonld.php`).
+
+> In the mu-plugin, these three pieces live together inside Section 7 because they share data. The three files above split them only for studying or reusing in isolation.
 
 ### Section 4 — Social sharing
 
